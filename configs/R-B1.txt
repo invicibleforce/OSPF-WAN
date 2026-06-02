@@ -1,0 +1,39 @@
+!
+! R-B1 — Branch 1, Area 1
+! Project 3 — Multi-Area OSPF WAN
+!
+hostname R-B1
+!
+!--- B1 LAN
+interface GigabitEthernet0/0
+ description B1 LAN
+ ip address 10.2.0.1 255.255.255.0
+ no shutdown
+!
+!--- To R-HQ (Area 1)
+interface Serial0/3/0
+ description To R-HQ
+ ip address 172.16.1.2 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ no shutdown
+!
+!--- To R-B2 redundant link (Area 1)
+interface Serial0/3/1
+ description To R-B2 redundant
+ ip address 172.16.1.13 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ clock rate 64000
+ no shutdown
+!
+!--- OSPF — all interfaces in Area 1
+router ospf 1
+ router-id 2.2.2.2
+ network 10.2.0.0 0.0.0.255 area 1
+ network 172.16.1.0 0.0.0.3 area 1
+ network 172.16.1.12 0.0.0.3 area 1
+ passive-interface GigabitEthernet0/0
+ area 1 authentication message-digest
+!
+end

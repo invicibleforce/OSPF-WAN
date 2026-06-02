@@ -1,0 +1,48 @@
+!
+! R-B2 — Branch 2, Area 2 (dual-homed to HQ)
+! Project 3 — Multi-Area OSPF WAN
+!
+hostname R-B2
+!
+!--- B2 LAN
+interface GigabitEthernet0/0
+ description B2 LAN
+ ip address 10.3.0.1 255.255.255.0
+ no shutdown
+!
+!--- To R-HQ primary (Area 2)
+interface Serial0/3/0
+ description To R-HQ primary
+ ip address 172.16.1.6 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ no shutdown
+!
+!--- To R-B1 redundant link (Area 1)
+interface Serial0/3/1
+ description To R-B1 redundant
+ ip address 172.16.1.14 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ no shutdown
+!
+!--- To R-HQ secondary / dual-home (Area 2)
+interface Serial0/2/0
+ description To R-HQ secondary
+ ip address 172.16.1.18 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ no shutdown
+!
+!--- OSPF — LAN and both HQ links in Area 2; redundant link in Area 1
+router ospf 1
+ router-id 3.3.3.3
+ network 10.3.0.0 0.0.0.255 area 2
+ network 172.16.1.4 0.0.0.3 area 2
+ network 172.16.1.16 0.0.0.3 area 2
+ network 172.16.1.12 0.0.0.3 area 1
+ passive-interface GigabitEthernet0/0
+ area 1 authentication message-digest
+ area 2 authentication message-digest
+!
+end

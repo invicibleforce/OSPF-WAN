@@ -1,0 +1,29 @@
+!
+! R-B3 — Branch 3, Area 3
+! Project 3 — Multi-Area OSPF WAN
+!
+hostname R-B3
+!
+!--- B3 LAN
+interface GigabitEthernet0/0
+ description B3 LAN
+ ip address 10.4.0.1 255.255.255.0
+ no shutdown
+!
+!--- To R-HQ (Area 3)
+interface Serial0/3/0
+ description To R-HQ
+ ip address 172.16.1.10 255.255.255.252
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ no shutdown
+!
+!--- OSPF — single area
+router ospf 1
+ router-id 4.4.4.4
+ network 10.4.0.0 0.0.0.255 area 3
+ network 172.16.1.8 0.0.0.3 area 3
+ passive-interface GigabitEthernet0/0
+ area 3 authentication message-digest
+!
+end

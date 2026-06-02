@@ -1,0 +1,90 @@
+!
+! R-HQ — Hub, ABR for all areas, NAT/PAT
+! Project 3 — Multi-Area OSPF WAN
+!
+hostname R-HQ
+!
+!--- LAN interface (passive in OSPF, NAT inside)
+interface GigabitEthernet0/0
+ description HQ LAN
+ ip address 10.1.0.1 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+!--- To R-ISP (NAT outside, NOT in OSPF)
+interface Serial0/2/0
+ description To R-ISP
+ ip address 198.51.100.2 255.255.255.252
+ ip nat outside
+ clock rate 64000
+ no shutdown
+!
+!--- To R-B3 (Area 3, NAT inside)
+interface Serial0/2/1
+ description To R-B3
+ ip address 172.16.1.9 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ clock rate 64000
+ no shutdown
+!
+!--- To R-B1 (Area 1, NAT inside)
+interface Serial0/3/0
+ description To R-B1
+ ip address 172.16.1.1 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ clock rate 64000
+ no shutdown
+!
+!--- To R-B2 primary (Area 2, NAT inside)
+interface Serial0/3/1
+ description To R-B2 primary
+ ip address 172.16.1.5 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ clock rate 64000
+ no shutdown
+!
+!--- To R-B2 secondary / dual-home (Area 2, NAT inside)
+interface Serial0/1/0
+ description To R-B2 secondary
+ ip address 172.16.1.17 255.255.255.252
+ ip nat inside
+ ip ospf message-digest-key 1 md5 0spfK3y!
+ ip ospf authentication message-digest
+ clock rate 64000
+ no shutdown
+!
+!--- OSPF: backbone + three areas; both B2 links in Area 2
+router ospf 1
+ router-id 1.1.1.1
+ network 10.1.0.0 0.0.0.255 area 0
+ network 172.16.1.0 0.0.0.3 area 1
+ network 172.16.1.4 0.0.0.3 area 2
+ network 172.16.1.16 0.0.0.3 area 2
+ network 172.16.1.8 0.0.0.3 area 3
+ passive-interface GigabitEthernet0/0
+ area 1 authentication message-digest
+ area 2 authentication message-digest
+ area 3 authentication message-digest
+ default-information originate
+!
+!--- NAT/PAT
+ip access-list standard NAT-ACL
+ permit 10.0.0.0 0.255.255.255
+!
+ip nat pool PUB-POOL 198.51.100.8 198.51.100.14 netmask 255.255.255.248
+ip nat inside source list NAT-ACL pool PUB-POOL overload
+!
+!--- Default route to ISP
+ip route 0.0.0.0 0.0.0.0 198.51.100.1
+!
+! NOTE: Route summarization was intentionally NOT configured.
+! Summarizing a single /24 as a /24 creates a Null0 discard route
+! that black-holes the real network. See README.
+!
+end

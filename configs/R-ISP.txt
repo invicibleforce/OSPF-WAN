@@ -1,0 +1,25 @@
+!
+! R-ISP — Internet edge (no OSPF, static default back to HQ)
+! Project 3 — Multi-Area OSPF WAN
+!
+hostname R-ISP
+!
+!--- To the internet web server
+interface GigabitEthernet0/0
+ description To Internet-Web
+ ip address 203.0.113.1 255.255.255.0
+ no shutdown
+!
+!--- To R-HQ
+interface Serial0/3/0
+ description To R-HQ
+ ip address 198.51.100.1 255.255.255.252
+ no shutdown
+!
+!--- Default route back toward HQ (covers the NAT pool 198.51.100.8/29)
+ip route 0.0.0.0 0.0.0.0 198.51.100.2
+!
+! NOTE: R-ISP does not run OSPF. It only needs to know how to send
+! replies back to the NAT pool, which the default route handles.
+!
+end
